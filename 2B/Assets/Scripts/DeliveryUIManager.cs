@@ -1,20 +1,18 @@
 using System.Collections;
+using UnityEditor.Shaders;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class DeliveryUIManager : MonoBehaviour
 {
     [Header("UI 요소")]
-
     public Text statusText;
-
     public Text messageText;
-
     public Slider batterSlider;
-
     public Image batteryFill;
 
     public DeliveryDriver driver;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -42,7 +40,7 @@ public class DeliveryUIManager : MonoBehaviour
         }
     }
 
-    void ShowMessage(string message, Color color)
+    void ShowMessage(string message, Color color)                           //메세지 표시 함수 
     {
         if(messageText != null)
         {
@@ -50,10 +48,9 @@ public class DeliveryUIManager : MonoBehaviour
             messageText.color = color;
             StartCoroutine(ClearMessageAfterDelay(2f));
         }
-
     }
 
-    IEnumerator ClearMessageAfterDelay(float delay)          //일정 시간 지난 후 사라진다.
+    IEnumerator ClearMessageAfterDelay(float delay)                 //일정 시간 지난 후 사라진다. 
     {
         yield return new WaitForSeconds(delay);
         if(messageText != null)
@@ -69,35 +66,36 @@ public class DeliveryUIManager : MonoBehaviour
 
     void UpdateBattery(float battery)
     {
-        if(batterSlider != null)
+        if (batterSlider != null)
         {
             batterSlider.value = battery / 100f;
         }
 
         if (batteryFill != null)
         {
-            if(battery > 50f)
+            if (battery > 50f)
             {
                 batteryFill.color = Color.green;
             }
             else if (battery > 20f)
             {
-                batteryFill.color= Color.green;
+                batteryFill.color = Color.green;
             }
             else
             {
-                batteryFill.color= Color.red;
+                batteryFill.color = Color.red;
             }
         }
     }
 
     void UpdateDeliveryCount(int count)
     {
-        ShowMessage($"배달 완료 : {count} 건", Color.blue);
+        ShowMessage($"배달 완료 : {count}건", Color.blue);
     }
+
     void OnMoveStarted()
     {
-        ShowMessage("이동 시작" , Color.cyan);
+        ShowMessage("이동 시작", Color.cyan);
     }
 
     void OnMoveStopped()
@@ -114,10 +112,12 @@ public class DeliveryUIManager : MonoBehaviour
     {
         ShowMessage("배터리 방전!", Color.red);
     }
+
     void OnDeliveryCompleted()
     {
-        ShowMessage("배달 완료!", Color.green);
+        ShowMessage("배달 완료", Color.green);
     }
+
     void UpdateUI()
     {
         if(driver != null)
@@ -127,10 +127,13 @@ public class DeliveryUIManager : MonoBehaviour
             UpdateDeliveryCount(driver.deliveryCount);
         }
     }
-    void OnDestroy()
+
+    void OnDestory()                    //객체가 파괴 될 때 호출 
     {
-        if (driver != null)
+
+        if(driver != null)
         {
+            //Event 구독 해제
             driver.driverEvents.OnMoneyChanged.RemoveListener(UpdateMoney);
             driver.driverEvents.OnBatteryChanged.RemoveListener(UpdateBattery);
             driver.driverEvents.OnDeliveryCountChanged.RemoveListener(UpdateDeliveryCount);
@@ -140,5 +143,7 @@ public class DeliveryUIManager : MonoBehaviour
             driver.driverEvents.OnLowBatterEmpty.RemoveListener(OnBatteryEmpty);
             driver.driverEvents.OnDeliveryCompleted.RemoveListener(OnDeliveryCompleted);
         }
+       
+
     }
 }

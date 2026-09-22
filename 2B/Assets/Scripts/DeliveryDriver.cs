@@ -1,52 +1,43 @@
-using Unity.VisualScripting;
+using Mono.Cecil.Cil;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
-using UnityEngine.Scripting.APIUpdating;
 
 public class DeliveryDriver : MonoBehaviour
 {
-
     [Header("배달원 설정")]
-
     public float moveSpeed = 8f;
-
     public float rotationSpeed = 10.0f;
 
     [Header("상태")]
-
     public float currentMoney = 0;
-
     public float batteryLevel = 100f;
-
     public int deliveryCount = 0;
 
+    //Event 시스템
     [System.Serializable]
-
     public class DriverEvents
     {
         [Header("이동 Event")]
-
         public UnityEvent OnMoveStarted;
         public UnityEvent OnMoveStoped;
 
         [Header("상태 변화 Event")]
-
         public UnityEvent<float> OnMoneyChanged;
         public UnityEvent<float> OnBatteryChanged;
         public UnityEvent<int> OnDeliveryCountChanged;
 
         [Header("경고 Event")]
-
         public UnityEvent OnLowBattery;
         public UnityEvent OnLowBatterEmpty;
         public UnityEvent OnDeliveryCompleted;
-    }
 
+    }
     public DriverEvents driverEvents;
 
     public bool isMoving = false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+
     void Start()
     {
         //초기 상태 Event 발생
@@ -55,10 +46,11 @@ public class DeliveryDriver : MonoBehaviour
         driverEvents.OnDeliveryCountChanged?.Invoke(deliveryCount);
     }
 
-    // Update is called once per frame
     void Update()
     {
+
         HandleMovement();
+
     }
 
     void ChangeBattery(float amount)
@@ -71,22 +63,22 @@ public class DeliveryDriver : MonoBehaviour
         driverEvents.OnBatteryChanged?.Invoke(batteryLevel);
 
         //배터리 상태에 따른 경고
-        if(oldBattery > 20f && batteryLevel <= 20f)
+        if (oldBattery > 20f && batteryLevel <= 20f)
         {
-            driverEvents.OnLowBattery?.Invoke();   //배터리 부족 이벤트 발생
+            driverEvents.OnLowBattery?.Invoke();                //배터리 부족 이벤트 발생
         }
-        if(oldBattery > 0 && batteryLevel <= 0)
+        if (oldBattery > 0 && batteryLevel <= 0)
         {
-            driverEvents.OnLowBatterEmpty?.Invoke();   //배터리 방전 이벤트 발생
+            driverEvents.OnLowBatterEmpty?.Invoke();                //배터리 방전 이벤트 발생
         }
-    }
 
+    }
     void HandleMovement()
     {
         //배터리 체크
-        if(batteryLevel <= 0)
+        if (batteryLevel <= 0)
         {
-            if (isMoving)
+            if(isMoving)
             {
                 StopMoving();
             }
@@ -95,12 +87,11 @@ public class DeliveryDriver : MonoBehaviour
 
         //입력 받기
         Vector2 input = Keyboard.current != null ? new Vector2(
-            (Keyboard.current.dKey.isPressed ? 1 : 0) -
-            (Keyboard.current.aKey.isPressed ? 1 : 0),
-            (Keyboard.current.wKey.isPressed ? 1 : 0) -
-            (Keyboard.current.sKey.isPressed ? 1 : 0)
-            ) : Vector2.zero;
-
+                (Keyboard.current.dKey.isPressed ? 1 : 0) -
+                (Keyboard.current.aKey.isPressed ? 1 : 0),
+                (Keyboard.current.wKey.isPressed ? 1 : 0) -
+                (Keyboard.current.sKey.isPressed ? 1 : 0)
+                ) : Vector2.zero;
 
         Vector3 moveDirection = new Vector3(input.x, 0f, input.y);
 
@@ -111,16 +102,24 @@ public class DeliveryDriver : MonoBehaviour
                 StartMoving();
             }
 
-            //속도처리
+            //이동 처리
             moveDirection = moveDirection.normalized;
             transform.Translate(moveDirection * moveSpeed * Time.deltaTime, Space.World);
 
             //회전처리
+
             if (moveDirection != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
+
+            ChangeBattery(-Time.deltaTime * 3.0f);              //이동 할 때 마다 배터리 소모 
+        }
+        else
+        {
+            if (isMoving)
+                StopMoving();
         }
     }
 
@@ -133,13 +132,13 @@ public class DeliveryDriver : MonoBehaviour
     void StopMoving()
     {
         isMoving = false;
-        driverEvents.OnMoveStoped?.Invoke();
+        driverEvents.OnMoveStoped?.Invoke();            
     }
 
     public void AddMoney(float amount)
     {
         currentMoney += amount;
-        driverEvents.OnMoneyChanged?.Invoke(currentMoney);       //돈 획득 후 이벤트 처리
+        driverEvents.OnMoneyChanged?.Invoke(currentMoney);              //돈 획득 후 이벤트 처리
     }
 
     public void CompleteDelivery()
@@ -153,13 +152,14 @@ public class DeliveryDriver : MonoBehaviour
 
     public void ChargeBattery()
     {
-        ChangeBattery(100f - batteryLevel);            //배터리 완충
+        ChangeBattery(100f - batteryLevel);                             //배터리 완충 
     }
 
     public string GetStatusText()
     {
-        return $"돈 : {currentMoney:F0}원 | 배터리 : {batteryLevel:F1}% | 배달 : {deliveryCount}건";
+        return $"돈 : {currentMoney:F0} 원 | 배터리 : {batteryLevel:F1}% | 배달 : {deliveryCount} 건";
     }
+
     public bool CanMove()
     {
         return batteryLevel > 0;
