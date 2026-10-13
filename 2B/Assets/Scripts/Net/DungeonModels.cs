@@ -1,5 +1,5 @@
+using JetBrains.Annotations;
 using System;
-using UnityEngine.Rendering;
 
 [Serializable]
 public class DungeonPlayerData
@@ -8,7 +8,7 @@ public class DungeonPlayerData
     public string name;
     public int level;
     public int hp;
-    public int maxhp;
+    public int maxHp;
     public int attack;
     public int gold;
 
@@ -24,12 +24,24 @@ public class DungeonRoomData
     public int monsterAttack;
     public int rewardGold;
 
+
 }
+[Serializable]
+public class DungeonRunData
+{
+    public string id;
+    public string state;
+    public int currentRoomIndex;
+    public int runGold;
+    public DungeonRoomData currentRoom;
+}
+
+
 [Serializable]
 public class DungeonStateData
 {
     public DungeonPlayerData player;
-    public DungeonRoomData room;
+    public DungeonRunData run;
 }
 [Serializable]
 public class DungeonResponse
@@ -37,6 +49,8 @@ public class DungeonResponse
     public bool success;
     public string code;
     public string message;
+
+    public DungeonStateData data;
     //public DungeonSTateData data;
 
 
